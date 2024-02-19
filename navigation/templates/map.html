@@ -1,0 +1,108 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Route Link Between Two Locations</title>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" href="https://unpkg.com/leaflet/dist/leaflet.css" />
+    <style>
+        #map {
+            height: 420px;
+        }
+        h1{
+            background-color: green;
+            color: whitesmoke;
+            text-align: center;
+        }
+        body{
+            background-color: lightgreen;
+        }
+    </style>
+</head>
+<body>
+
+<h1>Manoj <i>Mapz</i></h1>
+
+<label for="start">Start Location:</label>
+<input type="text" id="start" placeholder="Enter start city" /> &nbsp; &nbsp; &nbsp;
+
+<label for="end">End Location:</label>
+<input type="text" id="end" placeholder="Enter end city" /><br><br>
+
+<button onclick="calculateRoute()">Calculate Route</button><br><br>
+
+<div id="map"></div>
+<div id="distance"></div>
+
+<script src="https://unpkg.com/leaflet/dist/leaflet.js"></script>
+<script src="https://unpkg.com/leaflet-routing-machine/dist/leaflet-routing-machine.js"></script>
+<link rel="stylesheet" href="https://unpkg.com/leaflet-routing-machine/dist/leaflet-routing-machine.css" />
+
+<script>
+    var map = L.map('map').setView([20, 80], 5); // Default center of India
+
+    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+        attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
+    }).addTo(map);
+
+    var startMarker = L.marker([0, 0]).addTo(map);
+    var endMarker = L.marker([0, 0]).addTo(map);
+    var routeControl = L.Routing.control({
+        waypoints: [],
+        routeWhileDragging: true,
+        lineOptions: {
+            styles: [{color: '#3388ff', opacity: 1, weight: 5}]
+        }
+    }).addTo(map);
+
+    function calculateRoute() {
+        var startCity = document.getElementById('start').value;
+        var endCity = document.getElementById('end').value;
+
+        geocode(startCity, function(startCoords) {
+            geocode(endCity, function(endCoords) {
+                startMarker.setLatLng(startCoords);
+                endMarker.setLatLng(endCoords);
+
+                routeControl.setWaypoints([startCoords, endCoords]);
+
+                var distance = calculateDistance(startCoords, endCoords);
+                document.getElementById('distance').innerHTML = 'Distance : ' + distance.toFixed(2) + ' km';
+            });
+        });
+    }
+
+    function geocode(city, callback) {
+        fetch('https://nominatim.openstreetmap.org/search?format=json&q=' + city)
+            .then(response => response.json())
+            .then(data => {
+                if (data && data.length > 0) {
+                    callback([parseFloat(data[0].lat), parseFloat(data[0].lon)]);
+                } else {
+                    alert('Location not found for: ' + city);
+                }
+            })
+            .catch(error => console.error('Error:', error));
+    }
+
+    function calculateDistance(start, end) {
+        var R = 6371; // Radius of the Earth in km
+        var dLat = deg2rad(end[0] - start[0]);
+        var dLon = deg2rad(end[1] - start[1]);
+        var a =
+            Math.sin(dLat / 2) * Math.sin(dLat / 2) +
+            Math.cos(deg2rad(start[0])) * Math.cos(deg2rad(end[0])) *
+            Math.sin(dLon / 2) * Math.sin(dLon / 2);
+        var c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
+        var distance = R * c;
+        return distance;
+    }
+
+    function deg2rad(deg) {
+        return deg * (Math.PI / 180);
+    }
+</script>
+
+</body>
+</html>
+

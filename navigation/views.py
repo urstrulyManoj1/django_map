@@ -4,4 +4,4 @@ from django.conf import settings
 # Create your views here.
 
 def map(request):
-    return render(request,'map.html')
+    return render(request,'index.html')

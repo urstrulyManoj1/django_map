@@ -15,4 +15,7 @@ jobs:
       run: docker build -t dj .
 
     - name: Run Docker container
-      run: docker run -d --name dj-container -p 8000:8000 dj
+      run: |
+      docker run -d --name dj-container -p 8000:8000 dj
+      docker ps -a
+      docker logs my_container

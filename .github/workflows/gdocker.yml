@@ -1,21 +1,27 @@
-name: Docker Build and Run
+name: Build and Push Docker Image
 
 on:
   workflow_dispatch:
 
 jobs:
-  build:
+  build-and-push:
     runs-on: ubuntu-latest
 
     steps:
     - name: Checkout repository
       uses: actions/checkout@v2
 
-    - name: Build Docker image
-      run: docker build -t dj .
+    - name: Set up Docker Buildx
+      uses: docker/setup-buildx-action@v2
 
-    - name: Run Docker container
-      run: |
-         docker run -d --name dj-container -p 8000:8000 dj
-         docker ps -a
-         docker logs my_container
+    - name: Log in to Docker Hub
+      run: echo "${{ secrets.DOCKER_PASSWORD }}" | docker login -u "${{ secrets.DOCKER_USERNAME }}" --password-stdin
+
+    - name: Build Docker image
+      run: docker build -t my-image:latest .
+
+    - name: Tag Docker image
+      run: docker tag my-image:latest ${{ secrets.DOCKER_USERNAME }}/my-image:latest
+
+    - name: Push Docker image
+      run: docker push ${{ secrets.DOCKER_USERNAME }}/my-image:latest
